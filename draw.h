@@ -19,7 +19,13 @@ void add_polygons( struct matrix * points,
 		   double x2, double y2, double z2);
 void draw_lines( struct matrix * points, screen s, color c);
 void draw_polygons( struct matrix * points, screen s, color c);
+//le scan
 
+void scan(struct matrix *polygons, screen s, color c, int i, int top, int middle, int bottom);
+
+int arrange(struct matrix *polyongs, int i, int xy);
+
+void scanline(struct matrix *polygons, screen s, color c, int i);
 //advanced shapes
 void add_circle( struct matrix * points, 
 		 double cx, double cy, 

@@ -412,6 +412,198 @@ void add_box( struct matrix * polygons,
 	       x, y, z2); 
 }
   
+/*SCANLINE WORK
+
+
+
+ */
+
+void scanline(struct matrix *polygons, screen s, color c, int i){
+  int range = arrange(polygons,i,1);
+  int  top = range /  100;
+  int middle = (range%100)  / 10;
+  int bottom = range  %   10;
+  ////////////////////////////////////////////////
+  //Check to see if everything is in order
+  if(!(polygons->m[1][i+top] >= polygons->m[1][i+middle] && polygons->m[1][i+middle] >= polygons->m[1][i+bottom])){
+    printf("   Top: (%f,%f)\n",polygons->m[0][i+top],polygons->m[1][i+top]);
+    printf("Middle: (%f,%f)\n",polygons->m[0][i+middle],polygons->m[1][i+middle]);
+    printf("Bottom: (%f,%f)\n\n",polygons->m[0][i+bottom],polygons->m[1][i+bottom]);
+  }
+  
+  ///////////Set x0, y0, x1, y1, and d0/////
+  scan(polygons,s,c,i,top,middle,btton);//here the lines get drawn
+}
+
+int arrange(struct matrix *polygons, int i, int xy){
+  
+  
+ int top = 0;
+  int middle = 1;
+  int bottom = 2;
+  
+  int temp;
+  if(polygons->m[xy][i+middle] < polygons->m[xy][i+bottom]){
+    temp = middle;
+    middle = bottom;
+    bottom = temp;
+  }
+  if(polygons->m[xy][i+top] < polygons->m[xy][i+middle]){
+    temp = top;
+    top = middle;
+    middle = temp;
+  }
+  if(polygons->m[xy][i+middle] < polygons->m[xy][i+bottom]){
+    temp = middle;
+    middle = bottom;
+    bottom = temp;
+  }
+  if(polygons->m[xy][i+top]==polygons->m[xy][i+middle]){
+    if(xy==1 && (polygons->m[0][i+top]<polygons->m[0][i+middle])){
+      temp = top;
+      top = middle;
+      middle = temp;
+    }
+  }
+  if(polygons->m[1][i+bottom]==polygons->m[1][i+middle]){
+    if(xy==1 && (polygons->m[0][i+middle]<polygons->m[0][i+bottom])){
+      temp = bottom;
+      bottom = middle;
+      middle = temp;
+    }
+  }
+
+  return (B  + (10*middle) + (100 * top));
+}
+
+void scan(struct matrix *polygons, screen s, color c, int i, int T, int M, int B){
+  float x0, y0, x1, y1, d0, d1, Tx, Ty, Mx, My, Bx, By;
+  x0 = polygons->m[0][i+B];
+  y0 = polygons->m[1][i+B];
+  x1 = polygons->m[0][i+B];
+  y1 = polygons->m[1][i+B];
+  Tx = polygons->m[0][i+T];
+  Ty = polygons->m[1][i+T];
+  Mx = polygons->m[0][i+M];
+  My = polygons->m[1][i+M];
+  Bx = polygons->m[0][i+B];
+  By = polygons->m[1][i+B];
+  int ans =0;
+  float Rx, Cx, Lx;
+  ans = arrange(polygons, i, 0);
+  Rx = polygons->m[0][i + ans/100];
+  Cx = polygons->m[0][i + (ans%100)/10];
+  Lx = polygons->m[0][i + ans%10];
+  
+  //printf("(%f,%f),(%f,%f),(%f,%f)\n",Tx,Ty,Mx,My,Bx,By);
+  
+  d0 = (Tx - Bx)/(Ty - By);
+  //////////Start moving the points///////////////
+  if( (By < My) && (My < Ty) ){
+
+    d1 = (Mx - Bx)/(My - By);
+    while(y0 < My){
+      int colors[5] = {0,64,128,192,255};
+      c.red = colors[i%5];
+      c.blue = colors[(i+1)%5];
+      c.green = colors[(i-1)%5];
+
+      draw_line(x0,y0,x1,y1,s,c);
+
+      d0 = (Tx - x0)/(Ty - y0);
+      d1 = (Mx - x1)/(My - y1);
+      x0+=d0;
+      x1+=d1;
+      y0++;
+      y1++;
+
+      if(x0 < Lx){
+	x0 = Lx;
+      }else if(x0 > Rx){
+	x0 = Rx;
+      }
+      if(x1 < Lx){
+	x1 = Lx;
+      }else if(x1 > Rx){
+	x1 = Rx;
+      }
+    }
+    d1 = (Tx - Mx)/(Ty - My);
+    /*
+    if(d0>0){
+      x0 = Mx;
+    }else{
+      x1 = Mx;
+    }
+    */
+    int colors[5] = {0,64,128,192,255};//what color gets drawn?
+    while(y0 <= Ty){
+      c.red = colors[i%5];
+      c.blue = colors[(i+1)%5];
+      c.green = colors[(i-1)%5];
+
+      draw_line(x0,y0,x1,y1,s,c);
+
+      d0 = (Tx - x0)/(Ty - y0);
+      d1 = (Tx - x1)/(Ty - y1);
+      x0+=d0;
+      x1+=d1;
+      y0++;
+      y1++;
+
+      if(x0 < Lx){
+	x0 = Lx;
+      }else if(x0 > Rx){
+	x0 = Rx;
+      }
+      if(x1 < Lx){
+	x1 = Lx;
+      }else if(x1 > Rx){
+	x1 = Rx;
+      }
+
+    }
+  }else{
+    if(By == My){
+      x1 = Mx;
+      y1 = My;
+      d1 = (Tx - Mx)/(Ty - My);
+    }else if(Ty == My){
+      d1 = (Mx - Bx)/(My - By);
+    }else{
+      printf("STRAIGHT LINE\n");
+    }
+    while(y0 <= Ty){
+      int colors[5] = {0,64,128,192,255};
+      c.red = colors[i%5];
+      c.blue = colors[(i+1)%5];
+      c.green = colors[(i-1)%5];
+      d0 = (Tx - x0)/(Ty - y0);
+      if(By==My){
+	d1 = (Tx - x1)/(Ty - y1);
+      }else if(Ty==My){
+	d1 = (Mx - x1)/(My - y1);
+      }
+      draw_line(x0,y0,x1,y1,s,c);
+      x0+=d0;
+      x1+=d1;
+      y0++;
+      y1++;
+
+      if(x0 < Lx){
+	x0 = Lx;
+      }else if(x0 > Rx){
+	x0 = Rx;
+      }
+      if(x1 < Lx){
+	x1 = Lx;
+      }else if(x1 > Rx){
+	x1 = Rx;
+      }
+    }
+  }
+}
+
 /*======== void add_circle() ==========
   Inputs:   struct matrix * points
             double cx
@@ -569,26 +761,7 @@ void draw_lines( struct matrix * points, screen s, color c) {
 
     draw_line( points->m[0][i], points->m[1][i], 
 	       points->m[0][i+1], points->m[1][i+1], s, c);
-    //FOR DEMONSTRATION PURPOSES ONLY
-    //draw extra pixels so points can actually be seen    
-    /*
-    draw_line( points->m[0][i]+1, points->m[1][i], 
-	       points->m[0][i+1]+1, points->m[1][i+1], s, c);
-    draw_line( points->m[0][i], points->m[1][i]+1, 
-	       points->m[0][i+1], points->m[1][i+1]+1, s, c);
-    draw_line( points->m[0][i]-1, points->m[1][i], 
-	       points->m[0][i+1]-1, points->m[1][i+1], s, c);
-    draw_line( points->m[0][i], points->m[1][i]-1, 
-	       points->m[0][i+1], points->m[1][i+1]-1, s, c);
-    draw_line( points->m[0][i]+1, points->m[1][i]+1, 
-	       points->m[0][i+1]+1, points->m[1][i+1]+1, s, c);
-    draw_line( points->m[0][i]-1, points->m[1][i]+1, 
-	       points->m[0][i+1]-1, points->m[1][i+1]+1, s, c);
-    draw_line( points->m[0][i]-1, points->m[1][i]-1, 
-	       points->m[0][i+1]-1, points->m[1][i+1]-1, s, c);
-    draw_line( points->m[0][i]+1, points->m[1][i]-1, 
-	       points->m[0][i+1]+1, points->m[1][i+1]-1, s, c);
-    */
+  
   } 	       
 }
 
