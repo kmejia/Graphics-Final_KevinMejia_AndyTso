@@ -1,7 +1,9 @@
 Project by Kevin Mejia (Period 8) and Andy Tso (Period 4)
 current implementation
 scanline code that currently doesnt work
-
+altered files
+	draw.c
+		scanline() function 
 
 Files
 -----
