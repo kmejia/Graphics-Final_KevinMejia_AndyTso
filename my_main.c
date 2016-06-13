@@ -317,6 +317,7 @@ void process_knobs() {
   05/17/12 09:41:35
   jdyrlandweaver
   ====================*/
+
 void my_main( int polygons ) {
 
   int i, f, j;
@@ -331,13 +332,14 @@ void my_main( int polygons ) {
   struct vary_node **knobs;
   struct vary_node *vn;
   char frame_name[128];
+  struct light *spec;
+  struct light *amb;
+  struct light *dif;
 
-  num_frames = 1;
-  step = 5;
+  // lighting = Iambient + Idiffuse + Ispecular
  
-  g.red = 0;
-  g.green = 255;
-  g.blue = 255;
+
+
 
 
   first_pass();
@@ -387,7 +389,7 @@ void my_main( int polygons ) {
 		    step);
 	//apply the current top origin
 	matrix_mult( s->data[ s->top ], tmp );
-	draw_polygons( tmp, t, g );
+	draw_polygons( tmp, t, g, zbuffer );
 	tmp->lastcol = 0;
 	break;
 
@@ -399,7 +401,7 @@ void my_main( int polygons ) {
 		   op[i].op.torus.r1,
 		   step);
 	matrix_mult( s->data[ s->top ], tmp );
-	draw_polygons( tmp, t, g );
+	draw_polygons( tmp, t, g, zbuffer );
 	tmp->lastcol = 0;
 	break;
 
@@ -411,7 +413,7 @@ void my_main( int polygons ) {
 		 op[i].op.box.d1[1],
 		 op[i].op.box.d1[2]);
 	matrix_mult( s->data[ s->top ], tmp );
-	draw_polygons( tmp, t, g );
+	draw_polygons( tmp, t, g, zbuffer );
 	tmp->lastcol = 0;
 	break;
 
@@ -422,7 +424,7 @@ void my_main( int polygons ) {
 		  op[i].op.line.p1[0],
 		  op[i].op.line.p1[1],
 		  op[i].op.line.p1[1]);
-	draw_lines( tmp, t, g );
+	draw_lines( tmp, t, g, zbuffer );
 	tmp->lastcol = 0;
 	break;
 
@@ -512,7 +514,7 @@ void my_main( int polygons ) {
  
     //save the image with the correct filename
     if ( num_frames > 1 ) {
-      printf("Drawing frome: %d\n", f );
+      printf("frAmeNO.: %d        \n", f );
       sprintf( frame_name, "anim/%s%03d.png", name, f );
       save_extension( t, frame_name );
     }

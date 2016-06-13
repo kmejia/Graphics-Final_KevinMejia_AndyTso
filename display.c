@@ -1,7 +1,6 @@
 /*====================== display.c ========================
 Contains functions for basic manipulation of a screen 
 represented as a 2 dimensional array of colors.
-
 A color is an ordered triple of ints, with each value standing
 for red, green and blue respectively
 ==================================================*/
@@ -71,21 +70,37 @@ of the screen.
 If you wish to change this behavior, you can change the indicies
 of s that get set. For example, using s[x][YRES-1-y] will have
 pixel 0, 0 located at the lower left corner of the screen
-
 02/12/10 09:09:00
 jdyrlandweaver
 ====================*/
-void plot( screen s, color c, int x, int y) {
+void plot( screen s, color c, int x, int y, int z, struct matrix *zbuffer) {
   int newy = YRES - 1 - y;
-  if ( x >= 0 && x < XRES && newy >=0 && newy < YRES )
+  if (c.red > 255){
+    c.red = 255;
+  } else if (c.red < 0){
+    c.red = 0;
+  }
+  if (c.blue > 255){
+    c.blue = 255;
+  } else if (c.blue < 0){
+    c.blue = 0;
+  }
+  if (c.green > 255){
+    c.green = 255;
+  } else if (c.green < 0){
+    c.green = 0;
+  }
+		     
+  if ( x >= 0 && x < XRES && newy >=0 && newy < YRES && z > zbuffer->m[x][newy]){
     s[x][newy] = c;
+    zbuffer->m[x][newy] = z;
+  }
 }
 
 /*======== void clear_screen() ==========
 Inputs:   screen s  
 Returns: 
 Sets every color in screen s to black
-
 02/12/10 09:13:40
 jdyrlandweaver
 ====================*/
@@ -109,7 +124,6 @@ Inputs:   screen s
 Returns: 
 Saves screen s as a valid ppm file using the
 settings in ml6.h
-
 02/12/10 09:14:07
 jdyrlandweaver
 ====================*/
@@ -138,7 +152,6 @@ by file.
 If the extension for file is an image format supported
 by the "convert" command, the image will be saved in
 that format.
-
 02/12/10 09:14:46
 jdyrlandweaver
 ====================*/
@@ -166,7 +179,6 @@ void save_extension( screen s, char *file) {
 Inputs:   screen s 
 Returns: 
 Will display the screen s on your monitor
-
 02/12/10 09:16:30
 jdyrlandweaver
 ====================*/
@@ -182,23 +194,5 @@ void display( screen s) {
     wait(&x);
     remove( fname );
   }
-  /* For some reason, this refuses to run correctly
-     on some systems. Most likely a strange imagemagick
-     install issue. 
-     Above is a workaroudn for now.
-  int x, y;
-  FILE *f;
-
-  f = popen("display", "w");
-
-  fprintf(f, "P3\n%d %d\n%d\n", XRES, YRES, MAX_COLOR);
-  for ( y=0; y < YRES; y++ ) {
-    for ( x=0; x < XRES; x++) 
-      
-      fprintf(f, "%d %d %d ", s[x][y].red, s[x][y].green, s[x][y].blue);
-    fprintf(f, "\n");
-  }
-  pclose(f);
-  */
+  
 }
-
